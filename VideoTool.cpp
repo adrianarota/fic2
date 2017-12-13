@@ -246,7 +246,8 @@ int main(int argc, char* argv[])
 	
   xv=0;yv=0;
 	bool adjust= false;
-	while (1) {
+	while (1)
+		{
 
 BEGINNING:
 		//store image to matrix
@@ -266,8 +267,6 @@ BEGINNING:
 		//pass in thresholded frame to our object tracking function
 		//this function will return the x and y coordinates of the
 		//filtered object
-		if (trackObjects)
-		{	
 		
 		xv=x; yv=y;
 		inRange(HSV, Scalar(0, 0, 208), Scalar(255, 255, 255), threshold);
@@ -275,10 +274,10 @@ BEGINNING:
 	
 		if(xv>x&&yv>y) poz="ss"; 
 		if(xv>x&&yv<y) poz = "ds";
-		if(xv>x&&yv=y)poz = "su";
+		if(xv>x&&yv==y)poz = "su";
 		if(xv<x&&yv>y)poz ="sj" ;
 		if(xv<x&&yv<y)poz = "dj";
-		if(xv<x&&yv=y)poz = "j";
+		if(xv<x&&yv==y)poz = "j";
 		if(xv=x&&yv>y)poz = "s";
 		if(xv=x&&yv<y)poz = "d";
 		
@@ -286,46 +285,47 @@ BEGINNING:
 		{
 			
 		if(poz.compare("sj")||poz.compare("dj")||poz.compare("j"))
-			buffer="bs";
+			buffer="b";
 		
 		if(poz.compare("ss")||poz.compare("ds")||poz.compare("s"))
-			buffer="fs";
+			buffer="f";
 		adjust=true;
 		}
+		
 		if(x==20)
 		{
 			
 		if(poz.compare("sj")||poz.compare("dj")||poz.compare("j"))
-			buffer="fs";
+			buffer="f";
 		
 		if(poz.compare("ss")||poz.compare("ds")||poz.compare("s"))
-			buffer="bs";
+			buffer="b";
 		adjust=true;
 		}
 		
 		if(y==FRAME_WIDTH-20)
 		{ if(poz.compare("d"))
-			buffer="bs";
+			buffer="b";
 		if(poz.compare("ds")||poz.compare("dj"))
-			buffer="rs";
+			buffer="r";
 			adjust=true;
 		}
 	
 		if(y==20)
 		{
 			if(poz.compare("s"))
-			buffer="bs";
+			buffer="b";
 		if(poz.compare("ss")||poz.compare("sj"))
-			buffer="rs";
+			buffer="r";
 		adjust=true;
 		
 		}
 		
 		if(adjust){
-		for(int i=0;i<SIZE;i++){
-			send(sock , buffer[i], 1 , 0 );
-			usleep(10000);							
-				}
+		
+			send(sock , buffer, 1 , 0 );
+			usleep(10000);
+			send(sock , "s", 1 , 0 );
 		adjust=false;
 		goto BEGINNING;
 		}
@@ -336,145 +336,131 @@ BEGINNING:
 		
 		if (xt>x)
 		{
-			switch(pos)
-			{
-				case "su":{ buffer= "ls";
-							for(int i=0;i<SIZE;i++){
-							send(sock , buffer[i], 1 , 0 );
+			if(poz.compare("su")){ 
+							send(sock , "l", 1 , 0 );
 							usleep(30000);
-							
-							}}break;
-				case "j":{buffer= "fs";
-							for(int i=0;i<SIZE;i++){
-							send(sock , buffer[i], 1 , 0 );
+							send(sock , "s", 1 , 0 );
+						
+							}
+				if(poz.compare("j")){
+							send(sock , "f", 1 , 0 );
 							usleep(100000);
-							} }break;
-				case "s":{ buffer= "ls";
-							for(int i=0;i<SIZE;i++){
-							send(sock , buffer[i], 1 , 0 );
+						send(sock , "s", 1 , 0 );
+						}
+				if(poz.compare("s")){ 	send(sock , "l", 1 , 0 );
 							usleep(20000);
-							}}break;
-				case "d":{ buffer= "rs";
-							
-							for(int i=0;i<SIZE;i++){
-							send(sock , buffer[i], 1 , 0 );
+								send(sock , "s", 1 , 0 );
+						}
+				if(poz.compare("d")){	send(sock , "r", 1 , 0 );
 							usleep(20000);
-							}}break;
-				case "ss":{ buffer= "ls";
-							for(int i=0;i<SIZE;i++){
-							send(sock , buffer[i], 1 , 0 );
+							send(sock , "s", 1 , 0 );
+						}
+				if(poz.compare("ss")){ 	send(sock , "l", 1 , 0 );
 							usleep(30000);
-							}}break;
-				case "sj":{ buffer= "ls";
-							for(int i=0;i<SIZE;i++){
-							send(sock , buffer[i], 1 , 0 );
+								send(sock , "s", 1 , 0 );
+						}
+				if(poz.compare("sj")){	send(sock , "l", 1 , 0 );
 							usleep(10000);
-							}}break;
-				case "ds":{ buffer= "rs";
-							for(int i=0;i<SIZE;i++){
-							send(sock , buffer[i], 1 , 0 );
+							send(sock , "s", 1 , 0 );
+						}
+				if(poz.compare("ds")){send(sock , "r", 1 , 0 );
 							usleep(30000);
-							}}break;
-				case "dj":{ buffer= "rs";
-							for(int i=0;i<SIZE;i++){
-							send(sock , buffer[i], 1 , 0 );
+							send(sock , "s", 1 , 0 );
+						}
+				if(poz.compare("dj")){ 	send(sock , "r", 1 , 0 );
 							usleep(10000);
-							}}break;
-				default: break;
-			}
+							send(sock , "s", 1 , 0 );
+						}
+				
+			
 		}
-		pos="j";
+		poz="j";
 		if (xt<x)
 		{
-			switch(pos)
-			{
-				case "s":{buffer= "rs";
-							for(int i=0;i<SIZE;i++){
-							send(sock , buffer[i], 1 , 0 );
+				if(poz.compare("s")){
+							send(sock , "r", 1 , 0 );
 							usleep(20000);
-							
-							}}break;
-				case "j":{ buffer= "rs";
-							for(int i=0;i<SIZE;i++){
+								send(sock , "s", 1 , 0 );
+						}
+				if(poz.compare("j")){ 
 							send(sock , buffer[i], 1 , 0 );
 							usleep(30000);
-							}}break;
-				case "su":{ buffer= "fs";
-							for(int i=0;i<SIZE;i++){
-							send(sock , buffer[i], 1 , 0 );
+								send(sock , "s", 1 , 0 );
+						}
+				if(poz.compare("su")){
+							send(sock , "f", 1 , 0 );
 							usleep(100000);
-							}}break;
-				case "d":{ buffer= "ls";
-							for(int i=0;i<SIZE;i++){
-							send(sock , buffer[i], 1 , 0 );
+								send(sock , "s", 1 , 0 );
+						}
+				if(poz.compare("d")){ 
+							send(sock ,"l", 1 , 0 );
 							usleep(20000);
-							}}break;
-				case "ss":{ buffer= "rs";
-							for(int i=0;i<SIZE;i++){
-							send(sock , buffer[i], 1 , 0 );
+							}break;
+				if(poz.compare("ss")){ 
+							send(sock , "r", 1 , 0 );
 							usleep(10000);
-							}}break;
-				case "sj":{ buffer= "rs";
-							for(int i=0;i<SIZE;i++){
-							send(sock , buffer[i], 1 , 0 );
+								send(sock , "s", 1 , 0 );
+						}
+				if(poz.compare("sj")){ 
+							send(sock , "r", 1 , 0 );
 							usleep(30000);
-							}}break;
-				case "ds":{ buffer= "ls";
-							for(int i=0;i<SIZE;i++){
-							send(sock , buffer[i], 1 , 0 );
+								send(sock , "s", 1 , 0 );
+						}
+				if(poz.compare("ds")){ 
+							send(sock , "d", 1 , 0 );
 							usleep(10000);
-							}}break;
-				case "dj":{ buffer= "ls";
-							for(int i=0;i<SIZE;i++){
-							send(sock , buffer[i], 1 , 0 );
+								send(sock , "s", 1 , 0 );
+						}
+				if(poz.compare("dj")):{ 
+							send(sock , "l", 1 , 0 );
 							usleep(30000);
-							}}break;
-				default: break;
-			}
-		}
-		pos="su";
+								send(sock , "s", 1 , 0 );
+						}
+			
 		
+		poz="su";
+		}
 		
 	    if (xt==x)
 			{
 				if(yt>y)
-				{if (pos.compare("su"))
-					{buffer= "rs";
-							for(int i=0;i<SIZE;i++){
-							send(sock , buffer[i], 1 , 0 );
+				{if (poz.compare("su"))
+					{send(sock , "r", 1 , 0 );
 							usleep(20000);
-							}}
-				if (pos.compare("j"))
-					{buffer= "ls";
-							for(int i=0;i<SIZE;i++){
-							send(sock , buffer[i], 1 , 0 );
+							send(sock , "s", 1 , 0 );
+						}
+				if (poz.compare("j"))
+					{	send(sock , "l", 1 , 0 );
 							usleep(20000);
-							}}
-				pos="d";
+							send(sock , "s", 1 , 0 );
+						}
+				poz="d";
 				}
 				if(yt<y)
-				{if (pos.compare("su"))
-					{buffer= "ls";
-							for(int i=0;i<SIZE;i++){
-							send(sock , buffer[i], 1 , 0 );
+				{if (poz.compare("su"))
+					{
+							send(sock , "l", 1 , 0 );
 							usleep(20000);
-							}}
-				if (pos.compare("j"))
-					{buffer= "rs";
-							for(int i=0;i<SIZE;i++){
-							send(sock , buffer[i], 1 , 0 );
+							send(sock , "s", 1 , 0 );
+						}
+				if (poz.compare("j"))
+					{
+							send(sock , "r", 1 , 0 );
 							usleep(20000);
-							}}
-				pos="s";
+						send(sock , "s", 1 , 0 );
+						
+					}
+				poz="s";
 				}
-				buffer= "fs";
-						for(int i=0;i<SIZE;i++){
-					send(sock , buffer[i], 1 , 0 );
-							usleep(100000);
-							}
 				
+					send(sock , "f", 1 , 0 );
+							usleep(100000);
+					send(sock , "s", 1 , 0 );
+						
 			}
-		
+				
+			
+
 		//show frames
 		//imshow(windowName2, threshold);
 		imshow(windowName, cameraFeed);
@@ -483,10 +469,11 @@ BEGINNING:
 		//delay 30ms so that screen can refresh.
 		//image will not appear without this waitKey() command
 		waitKey(30);
-	}
+}
+
+
 
 
 
 	return 0;
 }
-
