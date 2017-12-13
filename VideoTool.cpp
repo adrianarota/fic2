@@ -248,7 +248,7 @@ int main(int argc, char* argv[])
 	bool adjust= false;
 	while (1) {
 
-
+BEGINNING:
 		//store image to matrix
 		capture.read(cameraFeed);
 		//convert frame from BGR to HSV colorspace
@@ -269,7 +269,7 @@ int main(int argc, char* argv[])
 		if (trackObjects)
 		{	
 		
-BEGINNING:		xv=x; yv=y;
+		xv=x; yv=y;
 		inRange(HSV, Scalar(0, 0, 208), Scalar(255, 255, 255), threshold);
 			trackFilteredObject(x, y, threshold, cameraFeed);
 	
