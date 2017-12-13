@@ -14,7 +14,7 @@
 #include <unistd.h>
 #define PORT 20236
 
-#define SIZE 4
+#define SIZE 2
 using namespace std;
 using namespace cv;
 //initial min and max HSV filter values.
@@ -186,12 +186,13 @@ void trackFilteredObject(int &x, int &y, Mat threshold, Mat &cameraFeed) {
 }
 int main(int argc, char* argv[])
 {
-/*
+
 	//some boolean variables for different functionality within this
 	//program
 	bool trackObjects = true;
 	bool useMorphOps = true;
-
+   std::string poz;
+	std::string buffer;
 	Point p;
 	//Matrix to store each frame of the webcam feed
 	Mat cameraFeed;
@@ -201,6 +202,8 @@ int main(int argc, char* argv[])
 	Mat threshold;
 	//x and y values for the location of the object
 	int x = 0, y = 0;
+	int xv = 0, yv = 0;
+	int xt = 0, yt = 0;
 	//create slider bars for HSV filtering
 	createTrackbars();
 	//video capture object to acquire webcam feed
@@ -213,51 +216,11 @@ int main(int argc, char* argv[])
 	//start an infinite loop where webcam feed is copied to cameraFeed matrix
 	//all of our operations will be performed within this loop
 
-
-
-	
-	while (1) {
-
-
-		//store image to matrix
-		capture.read(cameraFeed);
-		//convert frame from BGR to HSV colorspace
-    	cvtColor(cameraFeed, HSV, COLOR_BGR2HSV);
-		//filter HSV image between values and store filtered image to
-		//threshold matrix
-//		inRange(HSV, Scalar(H_MIN, S_MIN, V_MIN), Scalar(H_MAX, S_MAX, V_MAX), threshold);
-   inRange(HSV, Scalar(0, 0, 208), Scalar(255, 255, 255), threshold);
-		//perform morphological operations on thresholded image to eliminate noise
-		//and emphasize the filtered object(s)
-		if (useMorphOps)
-			morphOps(threshold);
-		//pass in thresholded frame to our object tracking function
-		//this function will return the x and y coordinates of the
-		//filtered object
-		if (trackObjects)
-		{	trackFilteredObject(x, y, threshold, cameraFeed);
- inRange(HSV, Scalar(163, 0, 0), Scalar(255, 255, 255), threshold);
- 	if (useMorphOps)
-			morphOps(threshold);
- trackFilteredObject(x, y, threshold, cameraFeed);
-  }
-		//show frames
-		//imshow(windowName2, threshold);
-		imshow(windowName, cameraFeed);
-		imshow(windowName1, HSV);
-		setMouseCallback("Original Image", on_mouse, &p);
-		//delay 30ms so that screen can refresh.
-		//image will not appear without this waitKey() command
-		waitKey(30);
-	}
-
-*/
     struct sockaddr_in address;
     int sock = 0, valread;
     struct sockaddr_in serv_addr;
  
- char buffer[SIZE][1] = {{'f'},{'s'},{'b'},{'s'}};
-    if ((sock = socket(AF_INET, SOCK_STREAM, 0)) < 0)
+	 if ((sock = socket(AF_INET, SOCK_STREAM, 0)) < 0)
     {
         printf("\n Socket creation error \n");
         return -1;
@@ -280,10 +243,249 @@ int main(int argc, char* argv[])
         printf("\nConnection Failed \n");
         return -1;
     }
-    for(int i=0;i<SIZE;i++){
-   send(sock , buffer[i], 1 , 0 );
-  usleep(1000000);
-}
+	
+  xv=0;yv=0;
+	bool adjust= false;
+	while (1) {
+
+
+		//store image to matrix
+		capture.read(cameraFeed);
+		//convert frame from BGR to HSV colorspace
+    	cvtColor(cameraFeed, HSV, COLOR_BGR2HSV);
+		//filter HSV image between values and store filtered image to
+		//threshold matrix
+		//		inRange(HSV, Scalar(H_MIN, S_MIN, V_MIN), Scalar(H_MAX, S_MAX, V_MAX), threshold);
+ 
+
+		
+		//perform morphological operations on thresholded image to eliminate noise
+		//and emphasize the filtered object(s)
+		if (useMorphOps)
+			morphOps(threshold);
+		//pass in thresholded frame to our object tracking function
+		//this function will return the x and y coordinates of the
+		//filtered object
+		if (trackObjects)
+		{	
+		
+BEGINNING:		xv=x; yv=y;
+		inRange(HSV, Scalar(0, 0, 208), Scalar(255, 255, 255), threshold);
+			trackFilteredObject(x, y, threshold, cameraFeed);
+	
+		if(xv>x&&yv>y) poz="ss"; 
+		if(xv>x&&yv<y) poz = "ds";
+		if(xv>x&&yv=y)poz = "su";
+		if(xv<x&&yv>y)poz ="sj" ;
+		if(xv<x&&yv<y)poz = "dj";
+		if(xv<x&&yv=y)poz = "j";
+		if(xv=x&&yv>y)poz = "s";
+		if(xv=x&&yv<y)poz = "d";
+		
+		if(x==FRAME_HEIGHT-20)
+		{
+			
+		if(poz.compare("sj")||poz.compare("dj")||poz.compare("j"))
+			buffer="bs";
+		
+		if(poz.compare("ss")||poz.compare("ds")||poz.compare("s"))
+			buffer="fs";
+		adjust=true;
+		}
+		if(x==20)
+		{
+			
+		if(poz.compare("sj")||poz.compare("dj")||poz.compare("j"))
+			buffer="fs";
+		
+		if(poz.compare("ss")||poz.compare("ds")||poz.compare("s"))
+			buffer="bs";
+		adjust=true;
+		}
+		
+		if(y==FRAME_WIDTH-20)
+		{ if(poz.compare("d"))
+			buffer="bs";
+		if(poz.compare("ds")||poz.compare("dj"))
+			buffer="rs";
+			adjust=true;
+		}
+	
+		if(y==20)
+		{
+			if(poz.compare("s"))
+			buffer="bs";
+		if(poz.compare("ss")||poz.compare("sj"))
+			buffer="rs";
+		adjust=true;
+		
+		}
+		
+		if(adjust){
+		for(int i=0;i<SIZE;i++){
+			send(sock , buffer[i], 1 , 0 );
+			usleep(10000);							
+				}
+		adjust=false;
+		goto BEGINNING;
+		}
+		
+	
+		inRange(HSV, Scalar(163, 0, 0), Scalar(255, 255, 255), threshold);	
+			trackFilteredObject(xt, yt, threshold, cameraFeed);
+		
+		if (xt>x)
+		{
+			switch(pos)
+			{
+				case "su":{ buffer= "ls";
+							for(int i=0;i<SIZE;i++){
+							send(sock , buffer[i], 1 , 0 );
+							usleep(30000);
+							
+							}}break;
+				case "j":{buffer= "fs";
+							for(int i=0;i<SIZE;i++){
+							send(sock , buffer[i], 1 , 0 );
+							usleep(100000);
+							} }break;
+				case "s":{ buffer= "ls";
+							for(int i=0;i<SIZE;i++){
+							send(sock , buffer[i], 1 , 0 );
+							usleep(20000);
+							}}break;
+				case "d":{ buffer= "rs";
+							
+							for(int i=0;i<SIZE;i++){
+							send(sock , buffer[i], 1 , 0 );
+							usleep(20000);
+							}}break;
+				case "ss":{ buffer= "ls";
+							for(int i=0;i<SIZE;i++){
+							send(sock , buffer[i], 1 , 0 );
+							usleep(30000);
+							}}break;
+				case "sj":{ buffer= "ls";
+							for(int i=0;i<SIZE;i++){
+							send(sock , buffer[i], 1 , 0 );
+							usleep(10000);
+							}}break;
+				case "ds":{ buffer= "rs";
+							for(int i=0;i<SIZE;i++){
+							send(sock , buffer[i], 1 , 0 );
+							usleep(30000);
+							}}break;
+				case "dj":{ buffer= "rs";
+							for(int i=0;i<SIZE;i++){
+							send(sock , buffer[i], 1 , 0 );
+							usleep(10000);
+							}}break;
+				default: break;
+			}
+		}
+		pos="j";
+		if (xt<x)
+		{
+			switch(pos)
+			{
+				case "s":{buffer= "rs";
+							for(int i=0;i<SIZE;i++){
+							send(sock , buffer[i], 1 , 0 );
+							usleep(20000);
+							
+							}}break;
+				case "j":{ buffer= "rs";
+							for(int i=0;i<SIZE;i++){
+							send(sock , buffer[i], 1 , 0 );
+							usleep(30000);
+							}}break;
+				case "su":{ buffer= "fs";
+							for(int i=0;i<SIZE;i++){
+							send(sock , buffer[i], 1 , 0 );
+							usleep(100000);
+							}}break;
+				case "d":{ buffer= "ls";
+							for(int i=0;i<SIZE;i++){
+							send(sock , buffer[i], 1 , 0 );
+							usleep(20000);
+							}}break;
+				case "ss":{ buffer= "rs";
+							for(int i=0;i<SIZE;i++){
+							send(sock , buffer[i], 1 , 0 );
+							usleep(10000);
+							}}break;
+				case "sj":{ buffer= "rs";
+							for(int i=0;i<SIZE;i++){
+							send(sock , buffer[i], 1 , 0 );
+							usleep(30000);
+							}}break;
+				case "ds":{ buffer= "ls";
+							for(int i=0;i<SIZE;i++){
+							send(sock , buffer[i], 1 , 0 );
+							usleep(10000);
+							}}break;
+				case "dj":{ buffer= "ls";
+							for(int i=0;i<SIZE;i++){
+							send(sock , buffer[i], 1 , 0 );
+							usleep(30000);
+							}}break;
+				default: break;
+			}
+		}
+		pos="su";
+		
+		
+	    if (xt==x)
+			{
+				if(yt>y)
+				{if (pos.compare("su"))
+					{buffer= "rs";
+							for(int i=0;i<SIZE;i++){
+							send(sock , buffer[i], 1 , 0 );
+							usleep(20000);
+							}}
+				if (pos.compare("j"))
+					{buffer= "ls";
+							for(int i=0;i<SIZE;i++){
+							send(sock , buffer[i], 1 , 0 );
+							usleep(20000);
+							}}
+				pos="d";
+				}
+				if(yt<y)
+				{if (pos.compare("su"))
+					{buffer= "ls";
+							for(int i=0;i<SIZE;i++){
+							send(sock , buffer[i], 1 , 0 );
+							usleep(20000);
+							}}
+				if (pos.compare("j"))
+					{buffer= "rs";
+							for(int i=0;i<SIZE;i++){
+							send(sock , buffer[i], 1 , 0 );
+							usleep(20000);
+							}}
+				pos="s";
+				}
+				buffer= "fs";
+						for(int i=0;i<SIZE;i++){
+					send(sock , buffer[i], 1 , 0 );
+							usleep(100000);
+							}
+				
+			}
+		
+		//show frames
+		//imshow(windowName2, threshold);
+		imshow(windowName, cameraFeed);
+		imshow(windowName1, HSV);
+		setMouseCallback("Original Image", on_mouse, &p);
+		//delay 30ms so that screen can refresh.
+		//image will not appear without this waitKey() command
+		waitKey(30);
+	}
+
+
 
 	return 0;
 }
