@@ -262,8 +262,7 @@ BEGINNING:
 		
 		//perform morphological operations on thresholded image to eliminate noise
 		//and emphasize the filtered object(s)
-		if (useMorphOps)
-			morphOps(threshold);
+		
 		//pass in thresholded frame to our object tracking function
 		//this function will return the x and y coordinates of the
 		//filtered object
@@ -271,7 +270,8 @@ BEGINNING:
 		xv=x; yv=y;
 		inRange(HSV, Scalar(0, 0, 208), Scalar(255, 255, 255), threshold);
 			trackFilteredObject(x, y, threshold, cameraFeed);
-	
+		if (useMorphOps)
+			morphOps(threshold);
 		if(xv>x&&yv>y) poz="ss"; 
 		if(xv>x&&yv<y) poz = "ds";
 		if(xv>x&&yv==y)poz = "su";
@@ -333,7 +333,8 @@ BEGINNING:
 	
 		inRange(HSV, Scalar(163, 0, 0), Scalar(255, 255, 255), threshold);	
 			trackFilteredObject(xt, yt, threshold, cameraFeed);
-		
+		if (useMorphOps)
+			morphOps(threshold);
 		if (xt>x)
 		{
 			if(poz.compare("su")){ 
