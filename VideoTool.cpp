@@ -339,6 +339,8 @@ BEGINNING:
 			trackFilteredObject(xt, yt, threshold, cameraFeed);
 		if (useMorphOps)
 			morphOps(threshold);
+		if (xt<0||xt>FRAME_HEIGHT||yt<0||yt>FRAME_WIDTH)
+			break;
 		if (xt>x)
 		{
 			if(poz.compare("su")){ 
